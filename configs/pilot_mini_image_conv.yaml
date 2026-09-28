@@ -1,0 +1,38 @@
+# Paper mini dimensions; see docs/architecture.md for explicit reconstruction choices.
+model:
+  encoder: image_conv
+  image_size: 224
+  patch_size: 16
+  conv_channels:
+  - 16
+  - 32
+  vision_dim: 400
+  vision_layers: 1
+  vision_heads: 8
+  text_dim: 96
+  text_layers: 4
+  text_heads: 8
+  mlp_ratio: 4
+  dropout: 0.1
+  max_text_tokens: 160
+data:
+  train_file: train.jsonl
+  val_file: val.jsonl
+  test_file: eval_holdout.jsonl
+  train_limit: 4500
+  val_limit: 500
+  selection_seed: 42
+  vocab_size: 4096
+  min_token_frequency: 1
+training:
+  seed: 42
+  epochs: 20
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.01
+  grad_clip: 1.0
+  precision: fp32
+  num_workers: 0
+  checkpoint_every: 100
+  log_every: 20
+  max_steps: null

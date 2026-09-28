@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "format": "ShortDesc",
+  "input_mode": "captions_only",
+  "min_words": 20,
+  "max_words": 25,
+  "max_attempts": 3,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 4096,
+    "num_predict": 128,
+    "top_k": 20,
+    "top_p": 0.9,
+    "repeat_penalty": 1.0
+  },
+  "prompt": "Write one image description of 20 to 25 English words using only the five reference captions below. Use simple everyday words and complete sentences. Describe the main entities, actions, and relationships. Do not invent objects, colors, counts, emotions, intentions, causes, or background details. If references disagree, use conservative wording that avoids the disputed detail. Do not turn five descriptions of the same scene into five different objects or events. Do not pad the description with unsupported details to meet the word target. Return only the description as one plain paragraph, without a title, introduction, quotation marks, bullets, reasoning, or commentary."
+}
