@@ -106,3 +106,36 @@ def test_unknown_manifest_rejected(tmp_path):
     write_json(path, {})
     with pytest.raises(ValueError, match="verified original"):
         d.inspect_manifest(path)
+
+
+def test_presence_penalty_excludes_prompt_and_counts_once():
+    import torch
+    processor = d.GeneratedPresencePenalty(2, 1.5)
+    scores = torch.zeros((2, 8))
+    ids = torch.tensor([[1, 2, 3, 3, 4], [4, 5, 1, 1, 1]])
+    result = processor(ids, scores)
+    assert result[0].tolist() == [0, 0, 0, -1.5, -1.5, 0, 0, 0]
+    assert result[1].tolist() == [0, -1.5, 0, 0, 0, 0, 0, 0]
+    assert not scores.any()  # Do not mutate caller-owned logits.
+    assert not processor(ids[:, :2], scores).any()
+
+
+def test_sampled_profile_recorded_and_passed_to_engine(selection, tmp_path, monkeypatch):
+    monkeypatch.setattr(d, "snapshot_identity", lambda path: {})
+    received = []
+    class Engine:
+        runtime = {}
+        load_seconds = 0
+        def __init__(self, *args):
+            pass
+        def generate(self, prompt, cap, seconds, decoding):
+            received.append(decoding)
+            return {"output_state": "no_final_boundary", "finish_reason": "token_limit"}
+    output = tmp_path / "sampled"
+    d.run(selection, CONFIG, "unused", output, factory=Engine, decoding="sampled")
+    assert received == ["sampled"] * 5
+    settings = read_json(output / "diagnostic_identity.json")["decoding"]
+    assert settings["do_sample"] is True and settings["presence_penalty"] == 1.5
+    assert settings["temperature"] == 1.0 and settings["seed"] == 42
+    with pytest.raises(ValueError, match="identity changed"):
+        d.run(selection, CONFIG, "unused", output, factory=Engine, decoding="greedy")

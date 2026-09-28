@@ -89,17 +89,41 @@ def classify_output(raw, generated_ids, eos_ids, token_cap, stopped=False, timed
             "note": "Diagnostic extraction only; no semantic approval. Missing </think> is ambiguous, not proof of refusal."}
 
 
+def decoding_profile(name):
+    if name == "greedy":
+        return {"do_sample": False, "num_beams": 1, "repetition_penalty": 1.0,
+                "presence_penalty": 0.0}
+    if name == "sampled":
+        return {"do_sample": True, "temperature": 1.0, "top_p": 0.95, "top_k": 20,
+                "num_beams": 1, "repetition_penalty": 1.0, "presence_penalty": 1.5}
+    raise ValueError("Unknown decoding profile")
+
+
+class GeneratedPresencePenalty:
+    """Subtract once per previously generated token, excluding reference/prompt tokens."""
+    def __init__(self, prompt_length, penalty):
+        self.prompt_length, self.penalty = prompt_length, penalty
+
+    def __call__(self, input_ids, scores):
+        scores = scores.clone()
+        for row in range(input_ids.shape[0]):
+            seen = input_ids[row, self.prompt_length:].unique()
+            scores[row, seen] -= self.penalty
+        return scores
+
+
 class QwenDiagnostic:
     def __init__(self, snapshot, stop):
         # Set before importing Transformers; local paths plus local_files_only prevent downloads.
         os.environ["HF_HUB_OFFLINE"] = "1"
         os.environ["TRANSFORMERS_OFFLINE"] = "1"
         import torch
-        from transformers import AutoProcessor, Qwen3VLForConditionalGeneration, StoppingCriteria, StoppingCriteriaList
+        from transformers import AutoProcessor, Qwen3VLForConditionalGeneration, StoppingCriteria, StoppingCriteriaList, LogitsProcessorList
         if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
             raise ValueError("This diagnostic requires a CUDA GPU with BF16 support; no CPU fallback")
         self.torch, self.stop = torch, stop
         self.StoppingCriteria, self.StoppingCriteriaList = StoppingCriteria, StoppingCriteriaList
+        self.LogitsProcessorList = LogitsProcessorList
         start = time.monotonic()
         self.processor = AutoProcessor.from_pretrained(str(snapshot), local_files_only=True, trust_remote_code=False)
         self.model = Qwen3VLForConditionalGeneration.from_pretrained(
@@ -115,7 +139,7 @@ class QwenDiagnostic:
                         "dtype": "bfloat16", "attention": "sdpa", "device": "cuda:0",
                         "generation_config": self.model.generation_config.to_dict()}
 
-    def generate(self, prompt, token_cap, seconds):
+    def generate(self, prompt, token_cap, seconds, decoding="greedy"):
         torch = self.torch
         messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
         rendered = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -137,10 +161,14 @@ class QwenDiagnostic:
                 return stop() or time.monotonic() - started >= seconds
         torch.manual_seed(42)
         torch.cuda.reset_peak_memory_stats()
+        settings = decoding_profile(decoding)
+        penalty = settings.pop("presence_penalty")
+        processors = self.LogitsProcessorList(
+            [GeneratedPresencePenalty(len(input_ids), penalty)] if penalty else [])
         with torch.inference_mode():
             outputs = self.model.generate(
-                **inputs, max_new_tokens=token_cap, do_sample=False, num_beams=1,
-                repetition_penalty=1.0, use_cache=True, eos_token_id=eos_ids,
+                **inputs, max_new_tokens=token_cap, **settings,
+                logits_processor=processors, use_cache=True, eos_token_id=eos_ids,
                 pad_token_id=self.processor.tokenizer.pad_token_id or eos_ids[0],
                 stopping_criteria=self.StoppingCriteriaList([Deadline()]))
         torch.cuda.synchronize()
@@ -170,7 +198,7 @@ def summarize(output, records):
             "scope": "Caption-only Thinking diagnostic; no images loaded, no training export, no automatic retries."}
 
 
-def run(selection, config_path, snapshot, output, count=5, token_cap=1024, seconds=120, stop=lambda: False, factory=QwenDiagnostic):
+def run(selection, config_path, snapshot, output, count=5, token_cap=1024, seconds=120, stop=lambda: False, factory=QwenDiagnostic, decoding="greedy"):
     if not 32 <= token_cap <= 2048 or not 1 <= seconds <= 600:
         raise ValueError("Token cap must be 32–2048 and per-record time budget 1–600 seconds")
     bundle, records = select_diagnostic(selection, count)
@@ -180,8 +208,9 @@ def run(selection, config_path, snapshot, output, count=5, token_cap=1024, secon
     identity = {"schema_version": 1, "purpose": "diagnostic_only", "teacher": teacher,
                 "source_digest": source_digest(), "selection_fingerprint": bundle["fingerprint"],
                 "records": records, "config": config, "input_mode": "captions_only",
-                "decoding": {"max_new_tokens": token_cap, "do_sample": False, "num_beams": 1,
-                             "repetition_penalty": 1.0, "seed": 42, "per_record_seconds": seconds},
+                "decoding": {"profile": decoding, "max_new_tokens": token_cap, **decoding_profile(decoding),
+                             "seed": 42, "per_record_seconds": seconds,
+                             "presence_penalty_scope": "generated token IDs only; once per distinct token"},
                 "decoding_note": "Diagnostic decoding overrides Ollama-specific config options; not a frozen production recipe."}
     # Reuse the existing cross-process locking primitive, with its own diagnostic directory.
     with ledger(output, create=True):
@@ -214,7 +243,7 @@ def run(selection, config_path, snapshot, output, count=5, token_cap=1024, secon
                            "identity_fingerprint": digest(identity)}
                 try:
                     print(f"Generating diagnostic for image {record['image_id']} ...", flush=True)
-                    payload.update(engine.generate(prompt, token_cap, seconds))
+                    payload.update(engine.generate(prompt, token_cap, seconds, decoding))
                 except Exception:
                     payload.update(output_state="runtime_error", error=traceback.format_exc())
                     write_json(output / f"{record['image_id']}.json", payload)
@@ -240,6 +269,7 @@ def main():
     p.add_argument("--count", type=int, default=5)
     p.add_argument("--max-new-tokens", type=int, default=1024)
     p.add_argument("--seconds-per-record", type=float, default=120)
+    p.add_argument("--decoding", choices=("greedy", "sampled"), default="greedy")
     args = parser.parse_args()
     stopped = False
     def request_stop(signum, frame):
@@ -252,7 +282,7 @@ def main():
             result = inspect_manifest(args.manifest)
         else:
             result = run(args.selection, args.config, args.snapshot, args.output, args.count,
-                         args.max_new_tokens, args.seconds_per_record, lambda: stopped)
+                         args.max_new_tokens, args.seconds_per_record, lambda: stopped, decoding=args.decoding)
         import json
         print(json.dumps(result, indent=2))
         return 75 if stopped else 0
