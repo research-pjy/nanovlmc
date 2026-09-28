@@ -16,6 +16,11 @@ from .validation import prompt_for, validate
 
 MODEL_ID = "Qwen/Qwen3-VL-8B-Thinking"
 REVISION = "92f3c4b4feadd3a016ef468d103bb5f58b2a2c6b"
+INSTRUCT_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+PINNED_MODELS = {
+    "models--Qwen--Qwen3-VL-8B-Thinking": (MODEL_ID, REVISION, "thinking"),
+    "models--Qwen--Qwen3-VL-8B-Instruct": ("Qwen/Qwen3-VL-8B-Instruct", INSTRUCT_REVISION, "instruct"),
+}
 MANIFEST_SHA = "61bdc663c42e4cba3141e633e83640558afa837da78bfe7cfa5a08a6f2373f7d"
 DEFAULT_SNAPSHOT = Path.home() / ".cache/huggingface/hub/models--Qwen--Qwen3-VL-8B-Thinking/snapshots" / REVISION
 
@@ -45,8 +50,10 @@ def select_diagnostic(path, count):
 
 def snapshot_identity(snapshot):
     snapshot = Path(snapshot).expanduser().resolve(strict=True)
-    if snapshot.name != REVISION or snapshot.parent.name != "snapshots" or snapshot.parent.parent.name != "models--Qwen--Qwen3-VL-8B-Thinking":
-        raise ValueError("Use the exact cached Qwen3-VL-8B-Thinking snapshot identified in the inventory")
+    expected = PINNED_MODELS.get(snapshot.parent.parent.name)
+    if not expected or snapshot.name != expected[1] or snapshot.parent.name != "snapshots":
+        raise ValueError("Use an exact pinned Qwen3-VL-8B Thinking or Instruct cache snapshot")
+    model_id, revision, variant = expected
     config = read_json(snapshot / "config.json")
     if config.get("model_type") != "qwen3_vl":
         raise ValueError("Expected Qwen3-VL model configuration")
@@ -61,13 +68,15 @@ def snapshot_identity(snapshot):
         raise ValueError("No indexed model weights")
     metadata = {p.name: file_digest(p) for p in sorted(snapshot.iterdir())
                 if p.is_file() and p.suffix in (".json", ".jinja")}
-    return {"model_id": MODEL_ID, "revision": REVISION, "weights": weights,
+    return {"model_id": model_id, "revision": revision, "variant": variant, "weights": weights,
             "metadata_sha256": metadata,
             "integrity_scope": "Metadata hashed; weights checked for presence/size and cached blob identity, not fully rehashed."}
 
 
-def classify_output(raw, generated_ids, eos_ids, token_cap, stopped=False, timed_out=False):
+def classify_output(raw, generated_ids, eos_ids, token_cap, stopped=False, timed_out=False, variant="thinking"):
     """Conservative extraction; never mistake unfinished reasoning for a caption."""
+    if variant not in ("thinking", "instruct"):
+        raise ValueError("Unknown model variant")
     ended = bool(generated_ids) and generated_ids[-1] in eos_ids
     finish = ("eos" if ended else "interrupted" if stopped else "token_limit"
               if len(generated_ids) >= token_cap else "time_limit" if timed_out else "unknown")
@@ -76,6 +85,11 @@ def classify_output(raw, generated_ids, eos_ids, token_cap, stopped=False, timed
         body = body.replace(marker, "")
     if not body.strip():
         state, candidate = "empty_output", ""
+    elif variant == "instruct":
+        if "<think>" in body or "</think>" in body:
+            state, candidate = "unexpected_reasoning", ""
+        else:
+            state, candidate = "final_candidate", body.strip()
     elif "</think>" not in body:
         state, candidate = "no_final_boundary", ""
     else:
@@ -86,7 +100,7 @@ def classify_output(raw, generated_ids, eos_ids, token_cap, stopped=False, timed
     return {"output_state": state, "finish_reason": finish, "candidate": candidate,
             "candidate_word_count": words, "candidate_errors": errors,
             "mechanically_valid_candidate": state == "final_candidate" and not errors,
-            "note": "Diagnostic extraction only; no semantic approval. Missing </think> is ambiguous, not proof of refusal."}
+            "note": "Diagnostic extraction only; no semantic approval. Thinking needs a closing boundary; Instruct is parsed directly. Unexpected reasoning is retained in raw output."}
 
 
 def decoding_profile(name):
@@ -114,6 +128,7 @@ class GeneratedPresencePenalty:
 
 class QwenDiagnostic:
     def __init__(self, snapshot, stop):
+        self.variant = snapshot_identity(snapshot)["variant"]
         # Set before importing Transformers; local paths plus local_files_only prevent downloads.
         os.environ["HF_HUB_OFFLINE"] = "1"
         os.environ["TRANSFORMERS_OFFLINE"] = "1"
@@ -181,7 +196,7 @@ class QwenDiagnostic:
                 "decoded_with_special_tokens": raw, "decoded_without_special_tokens": clean,
                 "generation_seconds": elapsed, "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
                 "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
-                **classify_output(raw, generated, eos_ids, token_cap, stop(), elapsed >= seconds)}
+                **classify_output(raw, generated, eos_ids, token_cap, stop(), elapsed >= seconds, self.variant)}
 
 
 def summarize(output, records):
@@ -195,7 +210,7 @@ def summarize(output, records):
                          "finish_reason": r.get("finish_reason"), "candidate": r.get("candidate", ""),
                          "candidate_errors": r.get("candidate_errors", []), "error": r.get("error")}
                         for r in results],
-            "scope": "Caption-only Thinking diagnostic; no images loaded, no training export, no automatic retries."}
+            "scope": "Caption-only Qwen diagnostic; see diagnostic_identity.json for pinned variant. No images loaded, no training export, no automatic retries."}
 
 
 def run(selection, config_path, snapshot, output, count=5, token_cap=1024, seconds=120, stop=lambda: False, factory=QwenDiagnostic, decoding="greedy"):

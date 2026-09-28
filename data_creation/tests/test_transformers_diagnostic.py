@@ -139,3 +139,29 @@ def test_sampled_profile_recorded_and_passed_to_engine(selection, tmp_path, monk
     assert settings["temperature"] == 1.0 and settings["seed"] == 42
     with pytest.raises(ValueError, match="identity changed"):
         d.run(selection, CONFIG, "unused", output, factory=Engine, decoding="greedy")
+
+
+def test_instruct_direct_answer_and_reasoning_rejection():
+    result = d.classify_output(GOOD + "<|im_end|>", [1, 9], [9], 1024, variant="instruct")
+    assert result["candidate"] == GOOD and result["mechanically_valid_candidate"]
+    assert d.classify_output(GOOD, [1], [9], 1, variant="instruct")["mechanically_valid_candidate"] is False
+    assert d.classify_output("<|im_end|>", [9], [9], 1024, variant="instruct")["output_state"] == "empty_output"
+    result = d.classify_output("<think>reasoning</think>" + GOOD, [1, 9], [9], 1024, variant="instruct")
+    assert result["output_state"] == "unexpected_reasoning" and not result["candidate"]
+    assert d.classify_output(GOOD, [1, 9], [9], 1024, variant="thinking")["output_state"] == "no_final_boundary"
+
+
+@pytest.mark.parametrize("folder,expected", list(d.PINNED_MODELS.items()))
+def test_pinned_snapshot_variant(tmp_path, folder, expected):
+    model_id, revision, variant = expected
+    snapshot = tmp_path / folder / "snapshots" / revision
+    snapshot.mkdir(parents=True)
+    write_json(snapshot / "config.json", {"model_type": "qwen3_vl"})
+    write_json(snapshot / "model.safetensors.index.json", {"weight_map": {"x": "model.safetensors"}})
+    (snapshot / "model.safetensors").write_bytes(b"synthetic weight placeholder")
+    identity = d.snapshot_identity(snapshot)
+    assert (identity["model_id"], identity["revision"], identity["variant"]) == expected
+    wrong = snapshot.with_name("unverified-revision")
+    snapshot.rename(wrong)
+    with pytest.raises(ValueError, match="exact pinned"):
+        d.snapshot_identity(wrong)
