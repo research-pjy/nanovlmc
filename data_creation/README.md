@@ -3,6 +3,8 @@
 **L40S update:** for the direct Transformers diagnostic on `rama`, start with
 [L40S.md](L40S.md). That path needs neither Ollama nor Slurm. The Ollama/DGX
 instructions below describe the earlier backend and remain available separately.
+The next 40-example generation/review/correction test is documented in
+[L40S_REVIEW.md](L40S_REVIEW.md).
 
 This component prepares data for both NanoVLM encoder variants. It does not change
 the model, fit a tokenizer, download models, start Ollama, or submit Slurm jobs.

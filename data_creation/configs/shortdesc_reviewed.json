@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "format": "ShortDesc",
+  "input_mode": "captions_only",
+  "min_words": 20,
+  "max_words": 25,
+  "max_attempts": 3,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 4096,
+    "num_predict": 1024,
+    "top_k": 20,
+    "top_p": 0.9,
+    "repeat_penalty": 1.0
+  },
+  "prompt": "Write a factual image description of 20–25 English words in total. Aim for 22 words, using one or two complete sentences in a single paragraph. Use simple everyday language.\n\nThe five reference captions describe ONE scene. Combine their supported details; do not treat them as separate scenes. A detail mentioned in one reference may be used when the other references do not contradict it. Omission is not disagreement. If references genuinely conflict, avoid the disputed detail or use less specific wording.\n\nDescribe only supported entities, actions, attributes, and spatial relationships. Do not change “with an object” into “holding an object,” invent hand positions, or infer intentions, emotions, or background objects. Express the supported facts in full sentences to reach the requested length, but do not repeat the same fact or add unsupported details merely to fill space. Factual accuracy takes priority if the length target cannot be met faithfully.\n\nReturn only the description. Do not include a title, introduction, word count, quotation marks, bullets, or reasoning. The requested total length is 20–25 words, not a shorter headline."
+}

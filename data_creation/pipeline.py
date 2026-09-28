@@ -96,7 +96,7 @@ def load_recipe(path):
     return value
 
 
-def generate(selection, config, run, teacher, model, limit=5, retry_failed=False, recipe_path=None, stop=lambda: False):
+def generate(selection, config, run, teacher, model, limit=5, retry_failed=False, recipe_path=None, stop=lambda: False, review_before_retry=False):
     if limit < 1:
         raise ValueError("limit must be positive")
     bundle, config = load_bundle(selection), configuration(config)
@@ -114,7 +114,7 @@ def generate(selection, config, run, teacher, model, limit=5, retry_failed=False
     identity = {"schema_version": 1, "selection": bundle, "config": config, "teacher": teacher_meta,
                 "source_digest": source_digest(), "python": platform.python_version(),
                 "validator": VALIDATOR_VERSION, "word_pattern": WORD_PATTERN,
-                "recipe": recipe}
+                "recipe": recipe, "review_before_retry": review_before_retry}
     calls = 0
     with ledger(run, create=True) as db:
         row = db.execute("SELECT value FROM meta WHERE key='identity'").fetchone()
@@ -124,6 +124,11 @@ def generate(selection, config, run, teacher, model, limit=5, retry_failed=False
             with db:
                 db.execute("INSERT INTO meta VALUES ('identity', ?)", (canonical(identity),))
             write_json(Path(run) / "identity.json", identity)
+        if retry_failed and review_before_retry:
+            for record in bundle["records"]:
+                prior = latest(db, record["image_id"])
+                if prior is None or prior["review"] is None:
+                    raise ValueError(f"Review every current benchmark output before correction; missing review for {record['image_id']}")
         for record in bundle["records"]:
             if stop() or calls >= limit:
                 break
@@ -134,13 +139,21 @@ def generate(selection, config, run, teacher, model, limit=5, retry_failed=False
             correction = None
             if prior:
                 reasons = list(prior["errors"])
+                reasons.append(f"The validator measured {prior['word_count']} words. Required range: {config['min_words']}–{config['max_words']}. Hyphenated words and contractions count as one word.")
                 if prior["review"] and prior["review"]["decision"] == "reject":
                     reasons += [prior["review"]["notes"]]
+                # Retain semantic instructions through subsequent retries, even when
+                # the most recent rejection focuses on a different problem.
+                for row in db.execute("SELECT payload FROM reviews WHERE image_id=? ORDER BY sequence", (record["image_id"],)):
+                    review = json.loads(row[0])
+                    if review["decision"] == "reject" and review["notes"] not in reasons:
+                        reasons.append(review["notes"])
                 correction = {"caption": prior["caption"], "reasons": reasons}
             prompt = prompt_for(config, record, correction)
             start = time.monotonic()
             transport_error = None
             try:
+                print(f"Generating image {record['image_id']}, attempt {number} ...", flush=True)
                 response = teacher.generate(model, prompt, config["options"])
                 if not isinstance(response, dict):
                     raise ValueError("Teacher response is not an object")

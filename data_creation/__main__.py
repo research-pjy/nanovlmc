@@ -24,11 +24,13 @@ def main(argv=None):
     p.add_argument("--model", required=True)
     p.add_argument("--output", required=True)
     p = commands.add_parser("generate", help="Generate a bounded number of requests; default five")
+    p.add_argument("--backend", choices=("ollama", "transformers"), default="ollama")
+    p.add_argument("--snapshot")
     p.add_argument("--selection", required=True)
     p.add_argument("--config", default="data_creation/configs/shortdesc.json")
     p.add_argument("--run", required=True)
-    p.add_argument("--host", required=True)
-    p.add_argument("--model", required=True)
+    p.add_argument("--host")
+    p.add_argument("--model")
     p.add_argument("--limit", type=int, default=5)
     p.add_argument("--timeout", type=float, default=180)
     p.add_argument("--retry-failed", action="store_true")
@@ -73,8 +75,22 @@ def main(argv=None):
                 raise ValueError("timeout must be positive")
             for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
                 signal.signal(sig, request_stop)
-            result = pipeline.generate(a.selection, a.config, a.run, Ollama(a.host, a.timeout), a.model,
-                                       a.limit, a.retry_failed, a.recipe, lambda: stopped)
+            if a.backend == "transformers":
+                from .transformers_teacher import TransformersTeacher
+                from .selection import load_bundle
+                if not a.snapshot or a.host:
+                    raise ValueError("Transformers requires --snapshot and no --host")
+                if load_bundle(a.selection)["kind"] != "development":
+                    raise ValueError("Transformers reviewed workflow is currently gated to development examples")
+                teacher = TransformersTeacher(a.snapshot, a.timeout, lambda: stopped)
+                model = a.model or teacher.identity["model_id"]
+            else:
+                if not a.host or not a.model or a.snapshot:
+                    raise ValueError("Ollama requires --host and --model, and no --snapshot")
+                teacher, model = Ollama(a.host, a.timeout), a.model
+            result = pipeline.generate(a.selection, a.config, a.run, teacher, model,
+                                       a.limit, a.retry_failed, a.recipe, lambda: stopped,
+                                       review_before_retry=a.backend == "transformers")
         elif a.command == "report":
             result = pipeline.report(a.run)
         elif a.command == "review-pack":

@@ -281,3 +281,28 @@ def test_metadata_uses_exact_installed_tag(monkeypatch):
     assert result["digest"] == "sha256:full" and result["server_version"] == "test-server"
     with pytest.raises(ValueError, match="no automatic pull"):
         teacher.metadata("teacher:latest")
+
+
+def test_reviewed_retry_gate_and_exact_feedback(selected, tmp_path):
+    path = tmp_path / "reviewed"
+    run(selected, path, FakeTeacher(["Too short."] + [GOOD] * 39), limit=40, review_before_retry=True)
+    teacher = FakeTeacher()
+    with pytest.raises(ValueError, match="Review every"):
+        run(selected, path, teacher, limit=40, retry_failed=True, review_before_retry=True)
+    assert not teacher.calls
+    pack_path = tmp_path / "reviews.json"
+    p.review_pack(path, pack_path)
+    pack = read_json(pack_path)
+    for r in pack["records"]:
+        r.update(decision="reject" if r["automatic_errors"] else "approve",
+                 notes="Do not introduce a second group." if r["automatic_errors"] else "Facts supported.",
+                 scores={"fidelity": 2, "entity_count_consistency": 2, "coherence": 2})
+    write_json(pack_path, pack)
+    p.import_reviews(path, pack_path, "test reviewer")
+    result = run(selected, path, teacher, limit=40, retry_failed=True, review_before_retry=True)
+    assert result["requests_this_invocation"] == 1
+    assert "validator measured 2 words" in teacher.calls[0]
+    assert "Do not introduce a second group." in teacher.calls[0]
+    with p.ledger(path) as db:
+        with pytest.raises(ValueError, match="human review"):
+            p.require_complete(db, p.metadata(db)["selection"])
