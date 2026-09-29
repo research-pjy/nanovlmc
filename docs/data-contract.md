@@ -1,5 +1,10 @@
 # Contract for the separate data-generation task
 
+The current frozen release is `shortdesc-pilot-v1` (4,500/500/100 records).
+Read `data_creation/HANDOFF.md` and its `provenance.json` for sampled review scope
+and limitations. The direct runtime is documented in `l40s/README.md`. The generic
+contract below still applies; the training code does not depend on its teacher.
+
 The models do not depend on a teacher model, service, or caption-generation code.
 Provide a versioned directory with `train.jsonl`, `val.jsonl`, and preferably
 `eval_holdout.jsonl` (filenames are configurable).

@@ -16,6 +16,15 @@ and operational experience. New model/training code is written independently.
 
 ## Workflow
 
+**Current runtime (2026-09-29):** execution moved to L40S hostname `rama`, repository
+`/home/jayanth/nanovlmc`, existing Conda environment `qwen-vl`. Run directly; no
+Slurm. Local changes → user review/commit/push → pull on rama → direct execution.
+Use `l40s/run.sh check` and `l40s/run.sh smoke`; read `l40s/README.md`. Preserve
+the environment and recheck actual dependencies/resources. Previously observed
+hardware/software values are recorded there, not asserted as currently verified.
+Model architecture and FP32 paired comparison remain unchanged. The DGX workflow
+below is retained as a legacy alternative, not the current execution target.
+
 Develop in local Ubuntu using existing Conda environment `nanovlm`; lightweight
 CPU checks and small GPU checks are allowed. User reviews, commits and pushes.
 DGX pulls public HTTPS code and runs jobs through Slurm in existing environment
@@ -30,6 +39,15 @@ requirements still need a short allocated check. Site settings live in ignored
 `dgx/cluster.local.sh`, not scientific configs.
 
 ## Data and resource decisions
+
+**Current release:** `shortdesc-pilot-v1` on rama at
+`/home/jayanth/datasets/nanovlm-caption-work/shortdesc-pilot-v1`, images rooted at
+`/home/jayanth/datasets/images`. It contains 4,500/500/100 frozen records. Read
+`data_creation/HANDOFF.md` and release `provenance.json`: 40 reviewed descriptions,
+13 edits, not exhaustive factual validation. Word length is not an acceptance
+gate. Fit a fresh training-only vocabulary; preserve identical data between
+encoders. Held-out records must not be used for training or tuning. Smoke success
+is required before planning/starting controlled pilot runs.
 
 Existing COCO images and captions have 25,200/2,800/100 experimental records;
 source COCO folder counts are not experimental split counts. The recovered

@@ -1,5 +1,8 @@
 # DGX execution
 
+This is the retained DGX alternative. Current execution is direct on **rama**;
+use [the L40S instructions](../l40s/README.md) there, without Slurm.
+
 Development and testing happen locally. The user reviews, commits, pushes, pulls
 on DGX, and submits. No scripts download dependencies, update code during a job,
 start Ollama, or generate captions.

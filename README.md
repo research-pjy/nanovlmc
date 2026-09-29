@@ -14,10 +14,18 @@ Actual vocabulary size and parameter counts are saved with every run.
 
 ## Read first
 
+- [Current runtime: direct L40S execution on rama](l40s/README.md)
 - [Architecture and reconstruction decisions](docs/architecture.md)
 - [Data contract for the separate caption-generation task](docs/data-contract.md)
 - [Project context and experiment scope](docs/project-context.md)
 - [DGX workflow and recovery](dgx/README.md)
+
+Current execution is `/home/jayanth/nanovlmc` on **rama**, in the existing
+`qwen-vl` environment. Use `bash l40s/run.sh check`, then `bash l40s/run.sh smoke`
+after pulling reviewed changes there. This directly tests both encoders with the
+frozen `shortdesc-pilot-v1` dataset; it does not submit jobs or start pilot training.
+The DGX instructions below remain a separate supported workflow. See
+`data_creation/HANDOFF.md` for the sampled-review limitations of the new dataset.
 
 ## Local usage
 
@@ -134,7 +142,8 @@ tests/                  # scientific invariants and training integration
 docs/                   # shared context, architecture and data contract
 ```
 
-Large datasets, local profiles, checkpoints, and outputs stay out of Git. Local
-development is followed by user-reviewed commits/pushes, DGX pull, frozen code
-submission, and Slurm execution. No remote repository or cluster job is created
-automatically by this project.
+Large datasets, local profiles, checkpoints, and outputs stay out of Git. The
+current workflow is local development, user-reviewed commit/push, pull on rama,
+and direct execution using `l40s/`. The separate DGX workflow retains frozen code
+submission and Slurm support. No remote repository, pilot campaign, or cluster
+job is created automatically by the L40S checks.
