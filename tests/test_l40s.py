@@ -49,6 +49,15 @@ def test_l40s_profiles_keep_model_and_pair_identical():
     assert pairs[0] == pairs[1]
 
 
+def test_one_epoch_profiles_only_shorten_pilot_budget():
+    for encoder in ("image_conv", "patch_conv"):
+        bounded = load_config(f"configs/l40s/one_epoch_shortdesc_{encoder}.yaml").to_dict()
+        pilot = load_config(f"configs/pilot_mini_{encoder}.yaml").to_dict()
+        assert bounded["training"]["epochs"] == 1
+        pilot["training"]["epochs"] = 1
+        assert bounded == pilot
+
+
 def test_machine_guard_reports_failure_without_fallback(tmp_path, monkeypatch):
     monkeypatch.setattr(l40s.socket, "gethostname", lambda: "laptop")
     monkeypatch.setattr(l40s.torch.cuda, "is_available", lambda: False)

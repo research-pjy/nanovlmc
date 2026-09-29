@@ -84,6 +84,46 @@ resume as documented in the root README.
 
 ## After a successful smoke and result review
 
+For the next bounded measurement, the paired
+`configs/l40s/one_epoch_shortdesc_image_conv.yaml` and
+`configs/l40s/one_epoch_shortdesc_patch_conv.yaml` preserve every pilot setting
+except `epochs: 1`. Each starts fresh, uses all 4,500 training and 500 validation
+records, batch size 32, FP32 and seed 42: 141 optimizer steps per encoder.
+Do not pass `--resume` from the three-step smoke.
+
+After pulling reviewed changes and activating `qwen-vl`, run this from the repo
+root (a subshell preserves strict failure handling without changing your shell):
+
+```bash
+(
+  set -euo pipefail
+  export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
+  export PYTHONUNBUFFERED=1 OMP_NUM_THREADS=4
+  mkdir -p /home/jayanth/nanovlm-runs
+  RUN_DIR=$(mktemp -d /home/jayanth/nanovlm-runs/one-epoch-XXXXXX)
+  printf 'Comparison outputs: %s\n' "$RUN_DIR"
+  for ENCODER in image_conv patch_conv; do
+    bash l40s/run.sh check > "$RUN_DIR/$ENCODER-check.log" 2>&1 || {
+      cat "$RUN_DIR/$ENCODER-check.log"; exit 1;
+    }
+    python -m nanovlm train \
+      --config "configs/l40s/one_epoch_shortdesc_${ENCODER}.yaml" \
+      --data-dir /home/jayanth/datasets/nanovlm-caption-work/shortdesc-pilot-v1 \
+      --images-root /home/jayanth/datasets/images \
+      --device cuda --output-dir "$RUN_DIR/$ENCODER" \
+      2>&1 | tee "$RUN_DIR/$ENCODER.log"
+    test -f "$RUN_DIR/$ENCODER/COMPLETE"
+    cat "$RUN_DIR/$ENCODER/summary.json"
+  done
+  printf 'Both one-epoch runs completed: %s\n' "$RUN_DIR"
+)
+```
+
+The second encoder starts only after the first completes successfully. Keep the
+dataset and checkout frozen during both runs. Return both `summary.json` and
+`metrics.jsonl` files for review before extending the budget. Do not evaluate on
+held-out data at this stage.
+
 Use identical frozen data and existing `configs/pilot_mini_image_conv.yaml` and
 `configs/pilot_mini_patch_conv.yaml`. Review measured memory/time before selecting
 the final training budget; the smoke does not authorize automatically running
