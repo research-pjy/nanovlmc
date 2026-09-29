@@ -1,0 +1,327 @@
+{
+  "reviewer": "Codex assistant; not human approval",
+  "sampling": "Lowest SHA256(handoff-review-v1:image_id), 20 train and 20 val",
+  "source_generated_sha256": "f54a43912a6e5956ab677e6ec1375c95f70fe8abf55ca39612fa7d51070c5cf9",
+  "records": [
+    {
+      "image_id": 99211,
+      "split": "train",
+      "original": "A man holds an umbrella near a tent with clothes for sale, standing with a woman and another man at an open market.",
+      "caption": "A man holds an umbrella near a tent with clothes for sale, standing with a woman and another man at an open market.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 182956,
+      "split": "train",
+      "original": "A man talks on his phone while standing in front of a toilet in a bathroom, maybe in a bar.",
+      "caption": "A man talks on his phone while standing in front of a toilet in a bathroom, maybe in a bar.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 81481,
+      "split": "train",
+      "original": "A man holds a bat near a base while others play baseball, with the batter swinging and the catcher ready to catch.",
+      "caption": "A baseball game has a batter holding a bat near the plate and a catcher on the field with other players.",
+      "decision": "edit",
+      "reason": "Remove unsupported swinging and readiness."
+    },
+    {
+      "image_id": 381485,
+      "split": "train",
+      "original": "Four old cell phones sit on a table. They are different kinds. Some are in a line. The table is wood.",
+      "caption": "Four old cell phones sit on a table. They are different kinds. Some are in a line. The table is wood.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 22440,
+      "split": "train",
+      "original": "A red bus moves slowly down a city street, driving beside parked cars and carefully navigating between them along the road.",
+      "caption": "A red passenger bus travels down a city street between parked cars.",
+      "decision": "edit",
+      "reason": "Remove unsupported speed and careful navigation."
+    },
+    {
+      "image_id": 196368,
+      "split": "train",
+      "original": "Small bathroom with window, sink, tub, and toilet; black and white tiled floor; simple, clean, well-organized, and neatly arranged space.",
+      "caption": "A small bathroom has a window, a sink, a tub, and a toilet, with black and white tiles on the floor.",
+      "decision": "edit",
+      "reason": "Remove unsupported cleanliness and organization."
+    },
+    {
+      "image_id": 81307,
+      "split": "train",
+      "original": "Many shoes are under the bed, lined up or tucked away, sometimes under a blanket, in a group or bunch.",
+      "caption": "Several pairs of shoes are lined up on the floor under a bed.",
+      "decision": "edit",
+      "reason": "Remove repetitive alternatives and temporal wording."
+    },
+    {
+      "image_id": 550652,
+      "split": "train",
+      "original": "Four men stand on a tennis court with rackets, talking over the net. They are all together near the court.",
+      "caption": "Four men stand on a tennis court with rackets, talking over the net. They are all together near the court.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 312385,
+      "split": "train",
+      "original": "A man holds a white surfboard at the water\u2019s edge, standing near the ocean, prepared to ride the waves and go surfing.",
+      "caption": "A man holds a white surfboard at the edge of the ocean.",
+      "decision": "edit",
+      "reason": "Remove inferred future activity."
+    },
+    {
+      "image_id": 38252,
+      "split": "train",
+      "original": "A closed Apple laptop sits on a dark surface. It has a silver cover and an apple logo in the center. The background is black.",
+      "caption": "A closed Apple laptop sits on a dark surface. It has a silver cover and an apple logo in the center. The background is black.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 21126,
+      "split": "train",
+      "original": "A man helps a woman wear her necklace. He stands behind her and holds her hair up. He puts the necklace on her neck.",
+      "caption": "A man helps a woman wear her necklace. He stands behind her and holds her hair up. He puts the necklace on her neck.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 45922,
+      "split": "train",
+      "original": "A man in a suit and tie stands by the roadside, wearing shorts and carrying a backpack, looking around casually.",
+      "caption": "A man wearing a coat, tie, and bicycle shorts stands near a road with a backpack.",
+      "decision": "edit",
+      "reason": "Remove unsupported looking around."
+    },
+    {
+      "image_id": 458412,
+      "split": "train",
+      "original": "A man sits on a metal post or pipe near a building outdoors, wearing a striped shirt, while resting or napping.",
+      "caption": "A man sits on a metal post or pipe near a building outdoors, wearing a striped shirt, while resting or napping.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 190216,
+      "split": "train",
+      "original": "Two clothed teddy bears sit near a box; one caption shows a paper bag with bear pictures, though its position relative to the box is unclear.",
+      "caption": "Two teddy bears wearing clothes are displayed near a box and a paper bag with pictures of bears on it.",
+      "decision": "edit",
+      "reason": "Remove reference-caption commentary."
+    },
+    {
+      "image_id": 499018,
+      "split": "train",
+      "original": "Two cats sit atop an old car in a grainy photo, parked in a driveway, with the vehicle showing signs of age.",
+      "caption": "A grainy photo shows two cats sitting on the roof of an old model car in a driveway.",
+      "decision": "edit",
+      "reason": "Old model does not establish physical wear."
+    },
+    {
+      "image_id": 354891,
+      "split": "train",
+      "original": "A man with glasses and a beard wears a shirt and tie. He is dressed up and takes a picture of himself.",
+      "caption": "A man with glasses and a beard wears a shirt and tie. He is dressed up and takes a picture of himself.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 251503,
+      "split": "train",
+      "original": "A young boy sits at a table with a white plate of pizza and a glass of orange juice. He looks at his food.",
+      "caption": "A young boy sits at a table with a white plate of pizza and a glass of orange juice. He looks at his food.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 441464,
+      "split": "train",
+      "original": "A suitcase sits alone near train tracks and a platform where people wait. A yellow line is nearby. It\u2019s a quiet station scene.",
+      "caption": "A suitcase sits near a yellow line on a railway platform beside the tracks, with passengers waiting nearby.",
+      "decision": "edit",
+      "reason": "Remove unsupported quiet atmosphere."
+    },
+    {
+      "image_id": 232244,
+      "split": "train",
+      "original": "An elephant stands and walks while wearing a colorful blanket and a decorative head piece on top of its head.",
+      "caption": "An elephant wears a colorful blanket and a decorative headpiece.",
+      "decision": "edit",
+      "reason": "Avoid combining conflicting stationary and moving actions."
+    },
+    {
+      "image_id": 327565,
+      "split": "train",
+      "original": "A blue motorcycle appears in several photos from different angles, with some shots showing its engine parts clearly and distinctly.",
+      "caption": "A blue motorcycle appears in several photos from different angles, with some shots showing its engine parts clearly and distinctly.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 83778,
+      "split": "val",
+      "original": "A person snowboards quickly down a snowy hill, wearing a helmet and goggles for safety as they descend the slope.",
+      "caption": "A person wearing a helmet and goggles snowboards down a snowy slope.",
+      "decision": "edit",
+      "reason": "Remove unsupported speed."
+    },
+    {
+      "image_id": 32193,
+      "split": "val",
+      "original": "Three giraffes and two zebras are grazing together in a grassy field, maybe at a zoo, eating and standing near each other.",
+      "caption": "Three giraffes and two zebras are grazing together in a grassy field, maybe at a zoo, eating and standing near each other.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 126757,
+      "split": "val",
+      "original": "A young man smiles as he sits on a blue motorcycle indoors at a trade show or convention, looking cheerful and relaxed.",
+      "caption": "A young man smiles while sitting on a blue motorcycle indoors at a motorbike convention.",
+      "decision": "edit",
+      "reason": "Remove inferred relaxed state."
+    },
+    {
+      "image_id": 518083,
+      "split": "val",
+      "original": "A small red bird sits on the windshield of a car. The car is blue. The bird has black parts too.",
+      "caption": "A small red bird sits on the windshield of a car. The car is blue. The bird has black parts too.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 10579,
+      "split": "val",
+      "original": "A man holds a donut and a drink. He wears a green shirt. The drink is in a cup. He might be eating or drinking.",
+      "caption": "A man holds a donut and a drink. He wears a green shirt. The drink is in a cup. He might be eating or drinking.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 560723,
+      "split": "val",
+      "original": "A streetlight stands beside a road work sign warning of construction ahead, with a black car parked close by on the roadside.",
+      "caption": "A streetlight stands beside a road work sign warning of construction ahead, with a black car parked close by on the roadside.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 401534,
+      "split": "val",
+      "original": "A woman and a man ride a motorcycle together; she sits behind him and wears a bandana on her head.",
+      "caption": "A woman and a man ride a motorcycle together; she sits behind him and wears a bandana on her head.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 411668,
+      "split": "val",
+      "original": "A small cat sits on a wooden bench and grooms itself. It is orange or tabby, cleaning its fur while resting outside.",
+      "caption": "A small cat sits on a wooden bench and grooms itself. It is orange or tabby, cleaning its fur while resting outside.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 201431,
+      "split": "val",
+      "original": "A woman walks a dog outside during the day. The dog is white. They are near a building and on a street.",
+      "caption": "A woman walks a dog outside during the day. The dog is white. They are near a building and on a street.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 174802,
+      "split": "val",
+      "original": "Bathroom has toilet, toilet paper in basket, writing on wall, and pictures behind toilet. There is also a biohazard sign on the wall.",
+      "caption": "Bathroom has toilet, toilet paper in basket, writing on wall, and pictures behind toilet. There is also a biohazard sign on the wall.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 507352,
+      "split": "val",
+      "original": "A clean white toilet sits in a modern bathroom with a paper holder nearby, a mirror, and an open door beside it.",
+      "caption": "A clean white toilet sits in a modern bathroom with a paper holder nearby, a mirror, and an open door beside it.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 281376,
+      "split": "val",
+      "original": "On the table are two laptops, two monitors, keyboards, headphones, and a phone. All computers are on and ready to use.",
+      "caption": "On the table are two laptops, two monitors, keyboards, headphones, and a phone. All computers are on and ready to use.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 407057,
+      "split": "val",
+      "original": "A man stands behind a horse on a farm field. The horse pulls a plow. It is a vintage picture.",
+      "caption": "A man stands behind a horse on a farm field. The horse pulls a plow. It is a vintage picture.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 20410,
+      "split": "val",
+      "original": "A man on a skateboard is going down a ramp. He wears a red shirt. There is a house nearby.",
+      "caption": "A man on a skateboard is going down a ramp. He wears a red shirt. There is a house nearby.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 334352,
+      "split": "val",
+      "original": "Many people fly kites and swim in the water near a beach with big waves and wind. Some kites fly high over the ocean.",
+      "caption": "Many people fly kites and swim in the water near a beach with big waves and wind. Some kites fly high over the ocean.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 386012,
+      "split": "val",
+      "original": "Many colorful kites fly over a sunny beach near the ocean, with people and wind surfboards in the water nearby.",
+      "caption": "Many colorful kites fly over a sunny beach near the ocean, with people and wind surfboards in the water nearby.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 507168,
+      "split": "val",
+      "original": "A man in a suit sits on a wooden bench and reads a newspaper. He is in a park. The paper is in his hands.",
+      "caption": "A man in a suit sits on a wooden bench and reads a newspaper. He is in a park. The paper is in his hands.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 534300,
+      "split": "val",
+      "original": "A bathroom has many toilet paper rolls on the wall, with eight rolls and several holders, but only one toilet.",
+      "caption": "A bathroom has many toilet paper rolls on the wall, with eight rolls and several holders, but only one toilet.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    },
+    {
+      "image_id": 470525,
+      "split": "val",
+      "original": "Three to four cows stand together in a field, some black, some dark brown, with one having a yellow tag in its ear.",
+      "caption": "A group of dark-colored cows stands together in a field, with yellow ear tags visible.",
+      "decision": "edit",
+      "reason": "Generalize conflicting counts and colors."
+    },
+    {
+      "image_id": 234903,
+      "split": "val",
+      "original": "A man rides a skateboard on a cement ramp in a skate park, doing a trick while grinding his board on the edge.",
+      "caption": "A man rides a skateboard on a cement ramp in a skate park, doing a trick while grinding his board on the edge.",
+      "decision": "retain",
+      "reason": "Accept under pragmatic reference-grounded review; no exact word-count requirement."
+    }
+  ]
+}
